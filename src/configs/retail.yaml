@@ -21,7 +21,6 @@ fit:
     num_items: 99037
     num_users: 147894
     max_len: 50
-    mask_prob: -0.01
     num_workers: 4
     val_negative_sampler_code: random
     val_negative_sample_size: 99
@@ -30,14 +29,14 @@ fit:
     predict_only_target: False
 
   trainer:
-    default_root_dir: logs/retail2/full
+    default_root_dir: logs/retail/full
     callbacks:
       - class_path: pytorch_lightning.callbacks.EarlyStopping
         init_args:
           monitor: 'Val:NDCG@10'
           patience: 30
           mode: max  
-    devices: [5]
+    devices: [0]
     accelerator: gpu
     accumulate_grad_batches: 1
   seed_everything: 42

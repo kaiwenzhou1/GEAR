@@ -19,7 +19,6 @@ class RecModel(pl.LightningModule):
         self.max_len = backbone.max_len
         self.alpha = alpha
 
-        # self.head = WassersteinPredictionHead(backbone.d_model, backbone.num_items, self.backbone.item_embedding_m.token,self.backbone.item_embedding_c.token)
         self.loss = torch.nn.CrossEntropyLoss(ignore_index=0)
 
         self.training_step_outputs = []
@@ -44,7 +43,6 @@ class RecModel(pl.LightningModule):
 
         logits_item, logits_behavior = self(input_ids[:, :-1], b_seq, time_bias)
 
-        # 扁平化 logits 和 labels 以适应 CrossEntropyLoss
         # logits: [batch_size, seq_len, num_items + 1] -> [batch_size * seq_len, num_items + 1]
         logits_item = logits_item.reshape(-1, logits_item.size(-1))
         # labels: [batch_size, seq_len] -> [batch_size * seq_len]
@@ -72,16 +70,9 @@ class RecModel(pl.LightningModule):
         time_bias = batch['time_bias']
         candidates = batch['candidates'].squeeze() # B x C
 
-        # interleaved = torch.empty(len(input_ids), self.max_len * 2, dtype=input_ids.dtype, device=input_ids.device)
-        # interleaved[:, 0::2] = b_seq
-        # interleaved[:, 1::2] = input_ids
-        # interleaved = input_ids
-        # print("val:", interleaved)
-
         logits = self.predict(input_ids[:, :-1], b_seq, time_bias, candidates)
         labels = batch['labels'].squeeze()
-        # print(logits, logits.shape)
-        # print(labels, labels.shape)
+
         metrics = recalls_and_ndcgs_for_ks(logits, labels, [1, 5, 10, 20, 50])
         self.validation_step_outputs.append(metrics)
         return metrics
